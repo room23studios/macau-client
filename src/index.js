@@ -1,8 +1,10 @@
-import './index.css'
+import "./index.css";
 
-import React from 'react'
-import {render} from 'react-dom'
+import React from "react";
+import { render } from "react-dom";
 
-import App from './App'
+import App from "./App";
 
-render(<App/>, document.querySelector('#app'))
+const token = document.getElementById("app").dataset.token;
+
+render(<App token={token} />, document.querySelector("#app"));
