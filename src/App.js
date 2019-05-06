@@ -1,7 +1,9 @@
 import "./App.css";
 
-import React, { useEffect, useReducer } from "react";
-import useSocket from "./socket.js";
+import React, { useReducer, useEffect } from "react";
+import useSocket, { SocketState } from "./socket.js";
+
+const command = (type, data) => JSON.stringify({ command: type, data });
 
 function reducer(state, { command, data }) {
   switch (command) {
@@ -12,13 +14,28 @@ function reducer(state, { command, data }) {
 
 function App({ token }) {
   const [state, dispatch] = useReducer(reducer, { connected: false });
-  const send = useSocket(token, dispatch);
+
+  const onMessage = msg => dispatch(JSON.parse(msg));
+
+  const [sendMessage, connectionState] = useSocket(
+    "ws://localhost:1234/socket",
+    { onMessage }
+  );
+
+  useEffect(() => {
+    if (connectionState != SocketState.OPEN) return;
+    sendMessage(command("hello", { token }));
+  }, [connectionState, token]);
 
   return (
     <div className="App">
-      connected: {state.connected ? "yes" : "no"}{" "}
-      {state.connected && (
-        <a href="#" onClick={() => send("ping", { payload: "kek" })}>
+      connected: {connectionState == SocketState.OPEN ? "yes" : "no"}{" "}
+      connected2: {state.connected ? "y" : "n"}
+      {connectionState == SocketState.OPEN && (
+        <a
+          href="#"
+          onClick={() => sendMessage(command("ping", { payload: "kek" }))}
+        >
           [send a ping]
         </a>
       )}
